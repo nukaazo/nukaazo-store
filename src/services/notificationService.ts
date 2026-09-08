@@ -64,3 +64,57 @@ export async function requestNotificationPermissionAsync(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Retrieves the device's Expo Push Token for sending remote push notifications.
+ */
+export async function getExpoPushTokenAsync(): Promise<string | null> {
+  if (Platform.OS === 'web' || isExpoGo || !Notifications) {
+    return null;
+  }
+
+  try {
+    const isGranted = await requestNotificationPermissionAsync();
+    if (!isGranted) return null;
+
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      Constants.easConfig?.projectId;
+
+    const tokenData = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined
+    );
+    console.log('📱 Expo Push Token:', tokenData.data);
+    return tokenData.data;
+  } catch (error) {
+    console.warn('Error fetching push token:', error);
+    return null;
+  }
+}
+
+/**
+ * Sends a local test notification to verify notification channels, sounds & banners.
+ */
+export async function sendTestLocalNotificationAsync(
+  title = 'Nukaazo Store',
+  body = '🎉 Test notification! Notifications are working properly.'
+): Promise<void> {
+  if (Platform.OS === 'web' || isExpoGo || !Notifications) {
+    return;
+  }
+
+  try {
+    await requestNotificationPermissionAsync();
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        sound: 'default',
+        channelId: 'promotions',
+      },
+      trigger: null, // deliver immediately
+    });
+  } catch (error) {
+    console.warn('Error scheduling local notification:', error);
+  }
+}

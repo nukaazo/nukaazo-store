@@ -10,8 +10,17 @@ import { WebView, WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_CONFIG } from '@/config';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { handleExternalUrl } from '@/utils/urlHelper';
-import { requestNotificationPermissionAsync } from '@/services/notificationService';
+import {
+  handleAuthUrl,
+  handleExternalUrl,
+  isAllowedDomain,
+  isAuthUrl,
+  isExternalScheme,
+} from '@/utils/urlHelper';
+import {
+  requestNotificationPermissionAsync,
+  requestLocationPermissionAsync,
+} from '@/services';
 import ErrorView from '../common/ErrorView/ErrorView';
 import OfflineBanner from '../common/OfflineBanner/OfflineBanner';
 import { styles } from './StoreWebView.styles';
@@ -28,11 +37,27 @@ export default function StoreWebView() {
   const [, setCurrentUrl] = useState(APP_CONFIG.store.baseUrl);
   const [lastBackPress, setLastBackPress] = useState(0);
 
-  // Request notification permissions on startup if enabled
+  // Check and request notification & location permissions on startup
   useEffect(() => {
-    if (APP_CONFIG.notifications.enabled && APP_CONFIG.notifications.requestPermissionOnStartup) {
-      requestNotificationPermissionAsync().catch(() => {});
-    }
+    const initPermissions = async () => {
+      // 1. Notification Permission
+      if (
+        APP_CONFIG.notifications.enabled &&
+        APP_CONFIG.notifications.requestPermissionOnStartup
+      ) {
+        await requestNotificationPermissionAsync().catch(() => {});
+      }
+
+      // 2. Geolocation Permission
+      if (
+        APP_CONFIG.location.enabled &&
+        APP_CONFIG.location.requestPermissionOnStartup
+      ) {
+        await requestLocationPermissionAsync().catch(() => {});
+      }
+    };
+
+    initPermissions();
   }, []);
 
   // Calculate dynamic top & bottom safe insets
@@ -75,16 +100,36 @@ export default function StoreWebView() {
     return () => backHandler.remove();
   }, [canGoBack, lastBackPress]);
 
-  // Handle URL intercept & external scheme redirection
+  // Handle URL intercept, auth sessions & external scheme redirection
   const handleShouldStartLoad = (request: { url: string }) => {
     const { url } = request;
 
-    // Check if this is an external link (UPI, WhatsApp, Tel, external payment, etc.)
-    const isCustomScheme = APP_CONFIG.store.externalSchemes.some((scheme) =>
-      url.toLowerCase().startsWith(scheme)
-    );
+    // 1. Check if this is an external scheme (UPI, WhatsApp, Tel, SMS, etc.)
+    if (isExternalScheme(url)) {
+      handleExternalUrl(url);
+      return false;
+    }
 
-    if (isCustomScheme) {
+    // 2. Check if this is an OAuth / Google Sign-in URL
+    if (isAuthUrl(url)) {
+      handleAuthUrl(url, APP_CONFIG.store.baseUrl).then((authResult) => {
+        if (authResult.success && authResult.url) {
+          if (webViewRef.current) {
+            webViewRef.current.injectJavaScript(
+              `window.location.href = ${JSON.stringify(authResult.url)}; true;`
+            );
+          }
+        } else {
+          if (webViewRef.current) {
+            webViewRef.current.reload();
+          }
+        }
+      });
+      return false;
+    }
+
+    // 3. Check if this is an external website outside allowed store domains
+    if (!isAllowedDomain(url)) {
       handleExternalUrl(url);
       return false;
     }

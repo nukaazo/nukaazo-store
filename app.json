@@ -48,6 +48,12 @@
           "icon": "./assets/images/android-icon-monochrome.png",
           "color": "#fcfcfa"
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Nukaazo Store to use your location for accurate delivery address and store services."
+        }
       ]
     ],
     "experiments": {

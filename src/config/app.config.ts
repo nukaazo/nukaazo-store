@@ -20,7 +20,14 @@ export const APP_CONFIG = {
       'checkout.razorpay.com',
       'api.razorpay.com',
       'securegw.paytm.in',
+    ],
+
+    // Auth & OAuth domains to open via Secure In-App Browser (Chrome Custom Tabs / ASWebAuthenticationSession)
+    // to preserve device Google accounts, saved credentials, and comply with Google OAuth policies
+    authDomains: [
       'accounts.google.com',
+      'appleid.apple.com',
+      'accounts.youtube.com',
     ],
 
     // Custom user-agent string for identifying app requests
@@ -122,6 +129,12 @@ export const APP_CONFIG = {
 
   // 9. Push Notifications Configuration
   notifications: {
+    enabled: true,
+    requestPermissionOnStartup: true,
+  },
+
+  // 10. Geolocation Permissions Configuration
+  location: {
     enabled: true,
     requestPermissionOnStartup: true,
   },
