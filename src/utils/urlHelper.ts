@@ -44,8 +44,23 @@ export function isAllowedDomain(url: string): boolean {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
 
+    // 1. Always allow host of the configured baseUrl
+    try {
+      const baseParsed = new URL(APP_CONFIG.store.baseUrl);
+      const baseHost = baseParsed.hostname.toLowerCase();
+      if (host === baseHost || host.endsWith('.' + baseHost)) {
+        return true;
+      }
+    } catch {}
+
+    // 2. Allow wildcard if specified
+    if (APP_CONFIG.store.allowedDomains.includes('*')) {
+      return true;
+    }
+
+    // 3. Check against allowed domains list
     return APP_CONFIG.store.allowedDomains.some(
-      (allowed) => host === allowed || host.endsWith('.' + allowed)
+      (allowed) => host === allowed.toLowerCase() || host.endsWith('.' + allowed.toLowerCase())
     );
   } catch {
     return false;

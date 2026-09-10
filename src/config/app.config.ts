@@ -8,10 +8,11 @@ export const APP_CONFIG = {
 
   // 2. Target Web Store & Domain Configuration
   store: {
-    // The main URL the app points to (Change this to point anywhere!)
+    // The main URL the app points to (Change this single URL to point anywhere!)
     baseUrl: 'https://shop.nukaazo.com',
 
-    // Domains permitted within the in-app webview
+    // Extra domains permitted within the in-app webview
+    // (Note: The domain of baseUrl is ALWAYS allowed automatically)
     allowedDomains: [
       'shop.nukaazo.com',
       'nukaazo.com',
@@ -22,8 +23,7 @@ export const APP_CONFIG = {
       'securegw.paytm.in',
     ],
 
-    // Auth & OAuth domains to open via Secure In-App Browser (Chrome Custom Tabs / ASWebAuthenticationSession)
-    // to preserve device Google accounts, saved credentials, and comply with Google OAuth policies
+    // Auth & OAuth domains to open via Secure In-App Browser (Chrome Custom Tabs / Safari View Controller)
     authDomains: [
       'accounts.google.com',
       'appleid.apple.com',
@@ -57,29 +57,98 @@ export const APP_CONFIG = {
     doubleTapExitMessage: 'Press back again to exit',
   },
 
-  // 3. Layout & Safe Area Configuration (Responsiveness)
+  // 3. Web Store Authentication & Session Synchronization
+  auth: {
+    enabled: true,
+    // The key name used in document.cookie and localStorage in the web store
+    tokenKey: 'access_token',
+    autoSyncAuth: true,
+  },
+
+  // 4. Geolocation & Location Permissions Configuration
+  location: {
+    // Master switch to enable/disable all location features
+    enabled: true,
+    requestPermissionOnStartup: true,
+    enableHighAccuracy: true,
+    // Key used in sessionStorage for web store location hydration
+    storageKey: 'user_location',
+    // Fallback coordinates when location is unavailable
+    defaultCoordinates: [18.7067776, 73.6582349] as [number, number],
+    // Reverse geocoding configuration
+    reverseGeocoding: {
+      enabled: true,
+      provider: 'both' as 'expo' | 'nominatim' | 'both',
+    },
+  },
+
+  // 5. Push Notifications & Backend Registration Configuration
+  notifications: {
+    // Master switch to enable/disable all push notification features
+    enabled: true,
+    requestPermissionOnStartup: true,
+    appType: 'shop',
+    // Backend API Base URL for notification registration
+    apiBaseUrl: 'https://api.nukaazo.com',
+    // Backend Endpoints
+    endpoints: {
+      register: '/api/v1/device-push/register',
+      unregister: '/api/v1/device-push/unregister',
+      testSend: '/api/v1/device-push/test-send',
+    },
+    // Android Notification Channels
+    channels: [
+      {
+        id: 'default',
+        name: 'General Notifications',
+        importance: 'max' as const,
+        sound: 'default',
+        vibrate: true,
+        lightColor: '#e85c1c',
+      },
+      {
+        id: 'alert_sound',
+        name: 'Order Alerts & Urgent Updates',
+        importance: 'max' as const,
+        sound: 'alert_sound',
+        vibrate: true,
+        lightColor: '#e85c1c',
+      },
+      {
+        id: 'notification_in',
+        name: 'Order Updates',
+        importance: 'max' as const,
+        sound: 'alert_sound',
+        vibrate: true,
+        lightColor: '#e85c1c',
+      },
+      {
+        id: 'promotions',
+        name: 'Offers & Updates',
+        importance: 'high' as const,
+        sound: 'default',
+        vibrate: true,
+        lightColor: '#e85c1c',
+      },
+    ],
+  },
+
+  // 6. Layout & Safe Area Configuration (Responsiveness)
   layout: {
-    // Automatically apply padding at the top for status bar / notch / camera cutouts
     enableTopSafeArea: true,
-
-    // Automatically apply padding at the bottom for home indicator / navigation bar
     enableBottomSafeArea: true,
-
-    // Background color for the status bar spacer
     topSafeAreaBackgroundColor: '#fcfcfa',
-
-    // Background color for the bottom navigation bar spacer
     bottomSafeAreaBackgroundColor: '#fcfcfa',
   },
 
-  // 4. Status Bar Configuration
+  // 7. Status Bar Configuration
   statusBar: {
     barStyle: 'dark-content' as 'dark-content' | 'light-content',
     backgroundColor: '#fcfcfa',
     translucent: false,
   },
 
-  // 5. Splash Screen Configuration
+  // 8. Splash Screen Configuration
   splash: {
     enabled: true,
     durationMs: 2000,
@@ -91,7 +160,7 @@ export const APP_CONFIG = {
     backgroundColor: '#fcfcfa',
   },
 
-  // 6. Theme & Branding Colors
+  // 9. Theme & Branding Colors
   theme: {
     colors: {
       primary: '#e85c1c',           // Nukaazo Orange
@@ -110,7 +179,7 @@ export const APP_CONFIG = {
     },
   },
 
-  // 7. Error & Offline Screen Content
+  // 10. Error & Offline Screen Content
   error: {
     offlineHeadline: 'No Internet Connection',
     offlineSubtitle: 'Please check your Wi-Fi or mobile data network.',
@@ -121,22 +190,10 @@ export const APP_CONFIG = {
     retryButtonText: 'Try Again',
   },
 
-  // 8. Offline Banner Configuration
+  // 11. Offline Banner Configuration
   offlineBanner: {
     enabled: true,
     message: 'You are currently offline. Check your connection.',
-  },
-
-  // 9. Push Notifications Configuration
-  notifications: {
-    enabled: true,
-    requestPermissionOnStartup: true,
-  },
-
-  // 10. Geolocation Permissions Configuration
-  location: {
-    enabled: true,
-    requestPermissionOnStartup: true,
   },
 };
 

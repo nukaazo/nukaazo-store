@@ -1,156 +1,39 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React from 'react';
 import {
-  BackHandler,
   Platform,
   StatusBar,
-  ToastAndroid,
   View,
 } from 'react-native';
-import { WebView, WebViewNavigation } from 'react-native-webview';
+import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_CONFIG } from '@/config';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import {
-  handleAuthUrl,
-  handleExternalUrl,
-  isAllowedDomain,
-  isAuthUrl,
-  isExternalScheme,
-} from '@/utils/urlHelper';
-import {
-  requestNotificationPermissionAsync,
-  requestLocationPermissionAsync,
-} from '@/services';
 import ErrorView from '../common/ErrorView/ErrorView';
 import OfflineBanner from '../common/OfflineBanner/OfflineBanner';
+import { useStoreWebViewHandler } from './handlers';
 import { styles } from './StoreWebView.styles';
 
 export default function StoreWebView() {
-  const webViewRef = useRef<WebView>(null);
   const insets = useSafeAreaInsets();
   const { isOffline } = useNetworkStatus();
 
-  const [canGoBack, setCanGoBack] = useState(false);
-  const [, setCanGoForward] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [, setCurrentUrl] = useState(APP_CONFIG.store.baseUrl);
-  const [lastBackPress, setLastBackPress] = useState(0);
-
-  // Check and request notification & location permissions on startup
-  useEffect(() => {
-    const initPermissions = async () => {
-      // 1. Notification Permission
-      if (
-        APP_CONFIG.notifications.enabled &&
-        APP_CONFIG.notifications.requestPermissionOnStartup
-      ) {
-        await requestNotificationPermissionAsync().catch(() => {});
-      }
-
-      // 2. Geolocation Permission
-      if (
-        APP_CONFIG.location.enabled &&
-        APP_CONFIG.location.requestPermissionOnStartup
-      ) {
-        await requestLocationPermissionAsync().catch(() => {});
-      }
-    };
-
-    initPermissions();
-  }, []);
+  const {
+    webViewRef,
+    hasError,
+    errorMessage,
+    bridgeScript,
+    handleShouldStartLoad,
+    handleNavigationStateChange,
+    handleLoadEnd,
+    handleReload,
+    handleError,
+    handleHttpError,
+    handleBridgeMessage,
+  } = useStoreWebViewHandler();
 
   // Calculate dynamic top & bottom safe insets
   const topInset = APP_CONFIG.layout.enableTopSafeArea ? insets.top : 0;
   const bottomInset = APP_CONFIG.layout.enableBottomSafeArea ? insets.bottom : 0;
-
-  // Hardware Back button handling on Android
-  useEffect(() => {
-    if (Platform.OS !== 'android') return;
-
-    const backAction = () => {
-      if (canGoBack && webViewRef.current) {
-        webViewRef.current.goBack();
-        return true;
-      }
-
-      if (APP_CONFIG.store.enableDoubleTapBackToExit) {
-        const now = Date.now();
-        if (now - lastBackPress < APP_CONFIG.store.doubleTapExitDelayMs) {
-          BackHandler.exitApp();
-          return true;
-        }
-
-        setLastBackPress(now);
-        ToastAndroid.show(
-          APP_CONFIG.store.doubleTapExitMessage,
-          ToastAndroid.SHORT
-        );
-        return true;
-      }
-
-      return false;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
-
-    return () => backHandler.remove();
-  }, [canGoBack, lastBackPress]);
-
-  // Handle URL intercept, auth sessions & external scheme redirection
-  const handleShouldStartLoad = (request: { url: string }) => {
-    const { url } = request;
-
-    // 1. Check if this is an external scheme (UPI, WhatsApp, Tel, SMS, etc.)
-    if (isExternalScheme(url)) {
-      handleExternalUrl(url);
-      return false;
-    }
-
-    // 2. Check if this is an OAuth / Google Sign-in URL
-    if (isAuthUrl(url)) {
-      handleAuthUrl(url, APP_CONFIG.store.baseUrl).then((authResult) => {
-        if (authResult.success && authResult.url) {
-          if (webViewRef.current) {
-            webViewRef.current.injectJavaScript(
-              `window.location.href = ${JSON.stringify(authResult.url)}; true;`
-            );
-          }
-        } else {
-          if (webViewRef.current) {
-            webViewRef.current.reload();
-          }
-        }
-      });
-      return false;
-    }
-
-    // 3. Check if this is an external website outside allowed store domains
-    if (!isAllowedDomain(url)) {
-      handleExternalUrl(url);
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleNavigationStateChange = (navState: WebViewNavigation) => {
-    setCanGoBack(navState.canGoBack);
-    setCanGoForward(navState.canGoForward);
-    setCurrentUrl(navState.url);
-  };
-
-  const handleReload = useCallback(() => {
-    setHasError(false);
-    setErrorMessage('');
-
-    if (webViewRef.current) {
-      webViewRef.current.reload();
-    }
-  }, []);
 
   // Web platform rendering (fallback for browser / web testing)
   if (Platform.OS === 'web') {
@@ -188,7 +71,7 @@ export default function StoreWebView() {
         translucent={APP_CONFIG.statusBar.translucent}
       />
 
-      {/* Top Safe Area / Status Bar Spacer to prevent overlapping notch/battery/charging icons */}
+      {/* Top Safe Area / Status Bar Spacer */}
       {topInset > 0 && (
         <View
           style={{
@@ -213,6 +96,10 @@ export default function StoreWebView() {
           javaScriptEnabled={true}
           domStorageEnabled={true}
           cacheEnabled={true}
+          geolocationEnabled={true}
+          injectedJavaScriptBeforeContentLoaded={bridgeScript}
+          injectedJavaScript={bridgeScript}
+          onMessage={handleBridgeMessage}
           setSupportMultipleWindows={false}
           javaScriptCanOpenWindowsAutomatically={true}
           startInLoadingState={false}
@@ -227,25 +114,12 @@ export default function StoreWebView() {
           automaticallyAdjustContentInsets={false}
           onShouldStartLoadWithRequest={handleShouldStartLoad}
           onNavigationStateChange={handleNavigationStateChange}
-          onError={(syntheticEvent) => {
-            const { nativeEvent } = syntheticEvent;
-            setHasError(true);
-            setErrorMessage(
-              nativeEvent.description || 'Failed to connect to Nukaazo Store.'
-            );
-          }}
-          onHttpError={(syntheticEvent) => {
-            const { nativeEvent } = syntheticEvent;
-            if (nativeEvent.statusCode >= 400) {
-              setHasError(true);
-              setErrorMessage(
-                `Server responded with status: ${nativeEvent.statusCode}`
-              );
-            }
-          }}
+          onLoadEnd={handleLoadEnd}
+          onError={handleError}
+          onHttpError={handleHttpError}
         />
 
-        {/* Error / Offline Screen Overlay (only when an actual network error occurs) */}
+        {/* Error / Offline Screen Overlay */}
         {hasError && (
           <View style={styles.errorContainer}>
             <ErrorView
@@ -257,7 +131,7 @@ export default function StoreWebView() {
         )}
       </View>
 
-      {/* Bottom Safe Area Spacer to prevent overlapping Android navigation bar / iOS home bar */}
+      {/* Bottom Safe Area Spacer */}
       {bottomInset > 0 && (
         <View
           style={{
@@ -270,3 +144,5 @@ export default function StoreWebView() {
     </View>
   );
 }
+
+
