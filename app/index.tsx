@@ -1,27 +1,24 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import Splash from '@/components/splash/Splash';
-import StoreWebView from '@/components/webview/StoreWebView';
-import { useIntroHandler } from '@/hooks/useIntroHandler';
-import { colors } from '@/theme/colors';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function Index() {
-  const { isSplashDone, setIsSplashDone } = useIntroHandler();
-
-  if (!isSplashDone) {
-    return (
-      <View style={styles.container}>
-        <Splash onFinish={() => setIsSplashDone(true)} />
-      </View>
-    );
-  }
-
-  return <StoreWebView />;
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Hello World</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000000',
   },
 });
