@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TextStyle } from 'react-native';
 import { colors } from '../../theme/colors';
+import { responsiveFontSize } from '@/utils/responsive';
 
 interface NukaazoTextProps {
   fontSize?: number;
@@ -12,7 +13,7 @@ const NukaazoText = ({ fontSize = 24, fontWeight = 'bold', style }: NukaazoTextP
   return (
     <Text style={[
       styles.container, 
-      { fontSize, fontWeight },
+      { fontSize: responsiveFontSize(fontSize), fontWeight },
       style
     ]}>
       <Text style={{ color: colors.primary }}>Nukaa</Text>

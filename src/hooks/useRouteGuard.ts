@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useRouter, useSegments, usePathname } from 'expo-router';
 import { tokenStorage } from '@/utils/tokenStorage';
 import { useProfile } from '@/context/ProfileContext';
-import { ROUTES } from '@/helper/routes';
+import { ROUTES, isExemptRoute } from '@/helper/routes';
 
 export function useRouteGuard(isTokenLoaded: boolean) {
   const segments = useSegments();
@@ -15,9 +15,7 @@ export function useRouteGuard(isTokenLoaded: boolean) {
 
     const token = tokenStorage.get();
     const isAuthRoute = (segments[0] as string) === 'ui';
-    const isExemptRoute =
-      pathname === ROUTES.TERMS ||
-      pathname === ROUTES.PRIVACY;
+    const exempt = isExemptRoute(pathname);
 
     if (token) {
       if (!profile) {
@@ -31,12 +29,12 @@ export function useRouteGuard(isTokenLoaded: boolean) {
           router.replace(ROUTES.DASHBOARD);
         }
       } else {
-        if (pathname !== ROUTES.LOGIN && !isExemptRoute) {
+        if (pathname !== ROUTES.LOGIN && !exempt) {
           router.replace(ROUTES.LOGIN);
         }
       }
     } else {
-      if (isAuthRoute && !isExemptRoute) {
+      if (isAuthRoute && !exempt) {
         router.replace(ROUTES.ROOT);
       }
     }

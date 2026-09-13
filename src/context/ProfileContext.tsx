@@ -70,9 +70,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setError(err?.message || "Failed to fetch profile");
       return { profile };
     } finally {
-      if (!signal?.aborted) {
+      // if (!signal?.aborted) {
         setIsLoading(false);
-      }
+      // }
     }
   };
 

@@ -6,4 +6,14 @@ export const ROUTES = {
   PRIVACY: '/ui/privacy' as any,
 } as const;
 
+export const EXEMPT_ROUTES = [
+  ROUTES.TERMS,
+  ROUTES.PRIVACY,
+] as const;
+
+export const isExemptRoute = (pathname?: string | null): boolean => {
+  if (!pathname) return false;
+  return EXEMPT_ROUTES.some((route) => pathname === route);
+};
+
 export default ROUTES;
