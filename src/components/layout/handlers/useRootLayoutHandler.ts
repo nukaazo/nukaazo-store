@@ -14,6 +14,10 @@ import {
   Poppins_700Bold,
   Poppins_800ExtraBold,
 } from '@expo-google-fonts/poppins';
+import {
+  Kalam_400Regular,
+  Kalam_700Bold,
+} from '@expo-google-fonts/kalam';
 import { tokenStorage } from '@/utils/tokenStorage';
 import { useProfile } from '@/context/ProfileContext';
 import { useRouteGuard } from '@/hooks/useRouteGuard';
@@ -35,6 +39,8 @@ export function useRootLayoutInit() {
     Poppins_600SemiBold,
     Poppins_700Bold,
     Poppins_800ExtraBold,
+    Kalam_400Regular,
+    Kalam_700Bold,
   });
 
   const [isTokenLoaded, setIsTokenLoaded] = useState(false);

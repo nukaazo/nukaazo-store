@@ -1,19 +1,49 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+  useWindowDimensions,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useProfile } from '@/context/ProfileContext';
+import { useShop } from '@/context/ShopContext';
 import { colors } from '@/theme/colors';
 import NukaazoLogo from '@/components/core/NukaazoLogo';
+import NRViewHome from '@/components/nrview/components/NRViewHome';
 
-export default function StoreDashboard() {
+function StoreDashboardContent() {
   const { profile, logout } = useProfile();
+  const { shopUrl, refreshShopData, isLoading } = useShop();
   const { width } = useWindowDimensions();
   const isSmall = width < 375;
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshShopData();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <ScrollView
       contentContainerStyle={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing || isLoading}
+          onRefresh={handleRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
+        />
+      }
     >
       <View style={styles.header}>
         <NukaazoLogo width={40} height={40} fill="transparent" />
@@ -42,6 +72,14 @@ export default function StoreDashboard() {
         <View style={styles.divider} />
 
         <View style={styles.detailRow}>
+          <Ionicons name="link-outline" size={18} color={colors.textMutedDark} />
+          <Text style={styles.detailLabel}>Shop:</Text>
+          <Text style={[styles.detailValue, { color: colors.primary }]}>
+            {shopUrl || 'Active'}
+          </Text>
+        </View>
+
+        <View style={styles.detailRow}>
           <Ionicons name="person-outline" size={18} color={colors.textMutedDark} />
           <Text style={styles.detailLabel}>Name:</Text>
           <Text style={styles.detailValue}>{profile?.name || '—'}</Text>
@@ -61,16 +99,43 @@ export default function StoreDashboard() {
       </View>
 
       <View style={styles.infoBox}>
-        <Ionicons name="information-circle-outline" size={20} color={colors.secondary} />
+        <Ionicons name="checkmark-circle-outline" size={20} color={colors.secondary} />
         <Text style={styles.infoText}>
-          Authentication flow is complete. Store home page features will be configured here.
+          Your shop is active and connected. You can manage incoming orders, catalog, and store settings here.
         </Text>
       </View>
     </ScrollView>
   );
 }
 
+export default function StoreDashboard() {
+  const { shopUrl, isLoading } = useShop();
+
+  // Show loading spinner when checking shop status
+  if (isLoading && !shopUrl) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // If user has no shop registered yet, render NRView onboarding flow
+  if (!shopUrl) {
+    return <NRViewHome />;
+  }
+
+  // User has a registered shop -> render Store Dashboard
+  return <StoreDashboardContent />;
+}
+
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
   scrollContainer: {
     flexGrow: 1,
     padding: 20,

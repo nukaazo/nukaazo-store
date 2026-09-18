@@ -1,5 +1,5 @@
-import { StyleSheet, Dimensions } from 'react-native';
 import { colors } from '@/theme/colors';
+import { Dimensions, StyleSheet } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -113,6 +113,9 @@ export const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.2)',
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
   },
   errorBoxHeader: {
     flexDirection: 'row',
