@@ -40,10 +40,8 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       } else {
         setShopData({ shopId: null, shopUrl: null });
       }
+      setError(null);
     } catch (err: any) {
-      console.warn("Shop not found or error fetching shop:", err?.message || err);
-      // When shop is not found (e.g. 404), user does not have a shop registered yet
-      setError(err?.message || "Shop not found");
       setShopData({ shopId: null, shopUrl: null });
     } finally {
       setIsLoading(false);

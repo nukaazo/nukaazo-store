@@ -34,7 +34,12 @@ export default function Layout() {
               headerShown: false,
               contentStyle: { backgroundColor: colors.background },
             }}
-          />
+          >
+            <Stack.Screen name="dashboard/index" options={{ headerShown: false }} />
+            <Stack.Screen name="create-shop/index" options={{ headerShown: false }} />
+            <Stack.Screen name="terms" options={{ headerShown: false }} />
+            <Stack.Screen name="privacy" options={{ headerShown: false }} />
+          </Stack>
 
           {isOverlayLoading && (
             <View

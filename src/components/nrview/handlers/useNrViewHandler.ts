@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Linking } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useProfile } from '@/context/ProfileContext';
 import { useShop } from '@/context/ShopContext';
+import { ROUTES } from '@/helper/routes';
 import { emptyStoreProfileContent } from '../content/emptyStoreProfile.content';
 
 export function useNrViewHandler() {
+  const router = useRouter();
   const { logout, profile } = useProfile();
   const { refreshShopData } = useShop();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isContactModalVisible, setIsContactModalVisible] = useState(false);
+  const [isCreatingShop, setIsCreatingShop] = useState(false);
 
   // ─── Looping App-Native Animations ───
   const stagePulseAnim = useRef(new Animated.Value(1)).current;
@@ -61,7 +65,12 @@ export function useNrViewHandler() {
   }, [stagePulseAnim, annotationAnim]);
 
   const handleCreateStore = () => {
-    setIsContactModalVisible(true);
+    setIsCreatingShop(true);
+    try {
+      router.push(ROUTES.CREATE_SHOP);
+    } catch (e) {
+      console.log('Navigation error:', e);
+    }
   };
 
   const handleContactSupport = () => {
@@ -114,6 +123,8 @@ export function useNrViewHandler() {
   return {
     isRefreshing,
     isContactModalVisible,
+    isCreatingShop,
+    setIsCreatingShop,
     stagePulseAnim,
     annotationAnim,
     handleCreateStore,

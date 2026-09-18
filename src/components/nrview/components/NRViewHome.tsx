@@ -17,6 +17,7 @@ import { useNrViewHandler } from '../handlers/useNrViewHandler';
 import ContactSupportModal from './ContactSupportModal';
 import { emptyStoreProfileContent } from '../content/emptyStoreProfile.content';
 import { styles } from '../styles/nrview.styles';
+import CreateShopScreen from '@/components/shop/components/CreateShopScreen';
 
 const SHOPKEEPER_3D_IMAGE = require('../../../../assets/images/indian_shopkeeper_3d.png');
 
@@ -24,6 +25,8 @@ export default function NRViewHome() {
   const {
     isRefreshing,
     isContactModalVisible,
+    isCreatingShop,
+    setIsCreatingShop,
     stagePulseAnim,
     annotationAnim,
     handleCreateStore,
@@ -35,6 +38,10 @@ export default function NRViewHome() {
     handleCall,
     handleEmail,
   } = useNrViewHandler();
+
+  if (isCreatingShop) {
+    return <CreateShopScreen onBack={() => setIsCreatingShop(false)} />;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>

@@ -9,6 +9,8 @@ import {
   useRootLayoutInit,
   useRootLayoutContent,
 } from "@/components/layout/handlers/useRootLayoutHandler";
+import AppAlertProvider from "@/lib/AppAlert";
+import { AppAlertBridge } from "@/lib/AppAlertBridge";
 
 function RootLayoutContent({ isTokenLoaded }: { isTokenLoaded: boolean }) {
   const {
@@ -51,11 +53,15 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ProfileProvider>
-        <ShopProvider>
-          <RootLayoutContent isTokenLoaded={isTokenLoaded} />
-        </ShopProvider>
-      </ProfileProvider>
+      <AppAlertProvider>
+        {/* Bridge: registers show/hide with the appAlert singleton for use in handlers */}
+        <AppAlertBridge />
+        <ProfileProvider>
+          <ShopProvider>
+            <RootLayoutContent isTokenLoaded={isTokenLoaded} />
+          </ShopProvider>
+        </ProfileProvider>
+      </AppAlertProvider>
     </SafeAreaProvider>
   );
 }
