@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
+    flex: 0.85,
   },
 
   // ─── Hero Illustration & Stage ───
