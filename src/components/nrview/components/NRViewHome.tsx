@@ -50,9 +50,8 @@ export default function NRViewHome() {
           />
         }
       >
-        {/* ─── Main Content Block: Hero + Typography ─── */}
-        <View style={styles.mainContentBlock}>
-          {/* Hero Section */}
+        {/* ─── Top Section: Hero Illustration ─── */}
+        <View style={styles.topSection}>
           <View style={styles.heroSection}>
             {/* Subtle Ambient Breathing Stage Rings */}
             <Animated.View
@@ -108,17 +107,17 @@ export default function NRViewHome() {
               </Animated.View>
             </View>
           </View>
+        </View>
 
-          {/* Typography & Statement */}
-          <View style={styles.contentSection}>
-            <Text style={styles.welcomeTitle}>
-              {emptyStoreProfileContent.welcomeTitlePrefix}
-              <Text style={{ color: colors.primary }}>{emptyStoreProfileContent.brandPrimary}</Text>
-              <Text style={{ color: colors.secondary }}>{emptyStoreProfileContent.brandSecondary}</Text>
-            </Text>
-            <Text style={styles.statementText}>{emptyStoreProfileContent.statementText}</Text>
-            <Text style={styles.descriptionText}>{emptyStoreProfileContent.descriptionText}</Text>
-          </View>
+        {/* ─── Middle Section: Balanced Typography & Statement ─── */}
+        <View style={styles.contentSection}>
+          <Text style={styles.welcomeTitle}>
+            {emptyStoreProfileContent.welcomeTitlePrefix}
+            <Text style={{ color: colors.primary }}>{emptyStoreProfileContent.brandPrimary}</Text>
+            <Text style={{ color: colors.secondary }}>{emptyStoreProfileContent.brandSecondary}</Text>
+          </Text>
+          <Text style={styles.statementText}>{emptyStoreProfileContent.statementText}</Text>
+          <Text style={styles.descriptionText}>{emptyStoreProfileContent.descriptionText}</Text>
         </View>
 
         {/* ─── Bottom Action Block ─── */}
