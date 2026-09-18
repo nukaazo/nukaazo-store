@@ -18,20 +18,8 @@ export function useRouteGuard(isTokenLoaded: boolean) {
     const exempt = isExemptRoute(pathname);
 
     if (token) {
-      if (!profile) {
-        return;
-      }
-
-      const hasCompletedProfile = !!profile?.name && !!profile?.phone;
-
-      if (hasCompletedProfile) {
-        if (!isAuthRoute) {
-          router.replace(ROUTES.DASHBOARD);
-        }
-      } else {
-        if (pathname !== ROUTES.LOGIN && !exempt) {
-          router.replace(ROUTES.LOGIN);
-        }
+      if (!isAuthRoute) {
+        router.replace(ROUTES.DASHBOARD);
       }
     } else {
       if (isAuthRoute && !exempt) {

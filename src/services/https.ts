@@ -1,6 +1,6 @@
 import { ENV } from "@/helper/env";
-import { HttpError } from "./http-error";
 import { tokenStorage } from "@/utils/tokenStorage";
+import { HttpError } from "./http-error";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -12,10 +12,10 @@ interface RequestOptions {
   queryParams?: Record<string, any>;
   headers?: Record<string, string>;
   type?: ContentType;
-  timeout?: number; 
+  timeout?: number;
 }
 
-const BASE_URL = ENV.BACKEND_BASE_URL; 
+const BASE_URL = ENV.BACKEND_BASE_URL;
 
 const getHeaders = (
   type: ContentType = "json",
@@ -34,7 +34,7 @@ const getHeaders = (
   } else {
     headers["Content-Type"] = "application/json";
   }
-      
+
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }

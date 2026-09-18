@@ -20,10 +20,11 @@ import { colors } from '@/theme/colors';
 import { loginContent } from '../content/login.content';
 import { useLoginHandler } from '../handlers/useLoginHandler';
 import { styles } from '../Login.styles';
-import DetailsForm from './DetailsForm';
-import EmailForm from './EmailForm';
+import PhoneForm from './PhoneForm';
 import OtpForm from './OtpForm';
-import DetailsSkeleton from './DetailsSkeleton';
+// import EmailForm from './EmailForm';
+// import DetailsForm from './DetailsForm';
+// import DetailsSkeleton from './DetailsSkeleton';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -48,52 +49,55 @@ export default function LoginScreen() {
 
   const {
     step,
-    email,
-    setEmail,
-    otp,
-    setOtp,
-    fullName,
-    setFullName,
     phone,
     setPhone,
-    phoneOtp,
-    setPhoneOtp,
+    otp,
+    setOtp,
     isFocused,
     setIsFocused,
     touched,
     setTouched,
     isLoading,
-    isGoogleLoading,
-    isValidEmail,
+    isValidPhone,
     showError,
-    emailButtonScale,
-    googleButtonScale,
+    phoneButtonScale,
     otpButtonScale,
-    detailsButtonScale,
-    emailBtnAnimatedStyle,
-    googleBtnAnimatedStyle,
+    phoneBtnAnimatedStyle,
     otpBtnAnimatedStyle,
-    detailsBtnAnimatedStyle,
     handlePressIn,
     handlePressOut,
-    handleEmailSubmit,
+    handlePhoneSubmit,
     handleOtpSubmit,
-    handleDetailsSubmit,
-    handlePhoneOtpSubmit,
-    handleGoogleSignIn,
     handleTermsPress,
     modalVisible,
     modalTitle,
     modalMessage,
     modalType,
     setModalVisible,
-    isNameSaved,
-    handleSaveName,
     handleBack,
-    handleRefreshProfile,
-    isRefreshingProfile,
     resendTimer,
     handleResendOtp,
+    // Preserved handlers/props for details/email flow if needed later
+    /*
+    fullName,
+    setFullName,
+    isNameSaved,
+    handleSaveName,
+    handleRefreshProfile,
+    isRefreshingProfile,
+    detailsButtonScale,
+    detailsBtnAnimatedStyle,
+    email,
+    setEmail,
+    isValidEmail,
+    isGoogleLoading,
+    emailButtonScale,
+    googleButtonScale,
+    emailBtnAnimatedStyle,
+    googleBtnAnimatedStyle,
+    handleEmailSubmit,
+    handleGoogleSignIn,
+    */
   } = useLoginHandler();
 
   // Dynamically calculate responsive hero spacer height
@@ -119,7 +123,7 @@ export default function LoginScreen() {
       />
 
       {/* ─── Top back button header ─── */}
-      {step !== 'email' && (
+      {step !== 'phone' && (
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -192,33 +196,54 @@ export default function LoginScreen() {
               
               {/* Welcome Title */}
               <View style={styles.welcomeContainer}>
-                {step === 'details' ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <Text style={styles.title}>
-                      {loginContent.detailsTitleStart} <Text style={{ color: colors.primary }}>{loginContent.detailsTitleHighlight}</Text>
-                    </Text>
-                    <TouchableOpacity
-                      onPress={handleRefreshProfile}
-                      disabled={isLoading}
-                      style={{ padding: 8, borderRadius: 20, backgroundColor: '#f4f4f5' }}
-                      accessibilityLabel="Refresh profile details"
-                    >
-                      <Ionicons name="refresh" size={18} color={colors.primary} />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <Text style={styles.title}>
-                    {loginContent.welcomeTitleStart} <Text style={{ color: colors.primary }}>{loginContent.welcomeTitleHighlight} :)</Text>
-                  </Text>
-                )}
-                {step === 'details' && (
-                  <Text style={{ fontFamily: 'Nunito_400Regular', color: colors.textBody, fontSize: 13.5, marginTop: 4 }}>
-                    {loginContent.detailsSubtitle}
-                  </Text>
-                )}
+                <Text style={styles.title}>
+                  {loginContent.welcomeTitleStart} <Text style={{ color: colors.primary }}>{loginContent.welcomeTitleHighlight} :)</Text>
+                </Text>
               </View>
 
-              {/* Dynamic Forms */}
+              {/* ─── Phone-First Login Step ─── */}
+              {step === 'phone' && (
+                <PhoneForm
+                  phone={phone}
+                  setPhone={setPhone}
+                  isFocused={isFocused}
+                  setIsFocused={setIsFocused}
+                  touched={touched}
+                  setTouched={setTouched}
+                  isLoading={isLoading}
+                  isValidPhone={isValidPhone}
+                  showError={showError}
+                  phoneButtonScale={phoneButtonScale}
+                  phoneBtnAnimatedStyle={phoneBtnAnimatedStyle}
+                  handlePressIn={handlePressIn}
+                  handlePressOut={handlePressOut}
+                  handlePhoneSubmit={handlePhoneSubmit}
+                  handleTermsPress={handleTermsPress}
+                />
+              )}
+
+              {/* ─── OTP Verification Step ─── */}
+              {step === 'otp' && (
+                <OtpForm
+                  target={phone}
+                  otp={otp}
+                  setOtp={setOtp}
+                  isLoading={isLoading}
+                  otpButtonScale={otpButtonScale}
+                  otpBtnAnimatedStyle={otpBtnAnimatedStyle}
+                  handlePressIn={handlePressIn}
+                  handlePressOut={handlePressOut}
+                  onSubmit={handleOtpSubmit}
+                  resendTimer={resendTimer}
+                  onResend={handleResendOtp}
+                />
+              )}
+
+              {/* 
+              // =========================================================================
+              // Email and Google Sign-In and Details form commented out for now:
+              // =========================================================================
+
               {step === 'email' && (
                 <EmailForm
                   email={email}
@@ -243,22 +268,6 @@ export default function LoginScreen() {
                 />
               )}
 
-              {step === 'email_otp' && (
-                <OtpForm
-                  target={email}
-                  otp={otp}
-                  setOtp={setOtp}
-                  isLoading={isLoading}
-                  otpButtonScale={otpButtonScale}
-                  otpBtnAnimatedStyle={otpBtnAnimatedStyle}
-                  handlePressIn={handlePressIn}
-                  handlePressOut={handlePressOut}
-                  onSubmit={handleOtpSubmit}
-                  resendTimer={resendTimer}
-                  onResend={handleResendOtp}
-                />
-              )}
-
               {step === 'details' && (
                 isRefreshingProfile ? (
                   <DetailsSkeleton />
@@ -280,22 +289,7 @@ export default function LoginScreen() {
                   />
                 )
               )}
-
-              {step === 'phone_otp' && (
-                <OtpForm
-                  target={phone}
-                  otp={phoneOtp}
-                  setOtp={setPhoneOtp}
-                  isLoading={isLoading}
-                  otpButtonScale={otpButtonScale}
-                  otpBtnAnimatedStyle={otpBtnAnimatedStyle}
-                  handlePressIn={handlePressIn}
-                  handlePressOut={handlePressOut}
-                  onSubmit={handlePhoneOtpSubmit}
-                  resendTimer={resendTimer}
-                  onResend={handleResendOtp}
-                />
-              )}
+              */}
             </View>
           </View>
         </ScrollView>
