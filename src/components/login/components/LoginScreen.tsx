@@ -111,9 +111,10 @@ export default function LoginScreen() {
       
       {/* ─── 100% Background Image ─── */}
       <Image
-        source={require('../../../../assets/images/login-hero-3d.png')}
+        source={require('../../../../assets/images/handover-hero.png')}
         style={styles.backgroundImage}
         contentFit="cover"
+        contentPosition="top center"
         transition={0}
       />
 
