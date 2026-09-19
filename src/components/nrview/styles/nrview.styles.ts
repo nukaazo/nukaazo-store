@@ -12,8 +12,8 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 24 : 32,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 24,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
 
   // ─── Top Spacer / Section ───
@@ -150,8 +150,7 @@ export const styles = StyleSheet.create({
     // Shadow completely removed as requested
   },
   buttonPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.85,
   },
   buttonGradient: {
     flexDirection: 'row',
