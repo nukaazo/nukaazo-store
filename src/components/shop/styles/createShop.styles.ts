@@ -375,14 +375,15 @@ export const styles = StyleSheet.create({
     marginVertical: 20,
   },
 
-  // ─── Step 2: Location Helpers (Teal theme) ───
+  // ─── Step 2: Location & Precise GPS (Teal theme) ───
   locationCard: {
     backgroundColor: colors.tealTint,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 14,
+    padding: 16,
     borderWidth: 1,
     borderColor: "rgba(0, 99, 99, 0.15)",
     marginBottom: 18,
+    gap: 12,
   },
   locationCardHeader: {
     flexDirection: "row",
@@ -393,63 +394,74 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    flex: 1,
   },
   locationDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.secondary,
   },
+  locationDotEmpty: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+  },
   locationCoordText: {
-    fontFamily: "Nunito_600SemiBold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 12,
     color: colors.secondary,
+  },
+  locationCoordTextEmpty: {
+    fontFamily: "Nunito_600SemiBold",
+    fontSize: 12,
+    color: colors.primary,
   },
   detectLocationBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    justifyContent: "center",
+    gap: 8,
     backgroundColor: colors.secondary,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    borderRadius: 10,
   },
   detectLocationText: {
-    fontFamily: "Nunito_600SemiBold",
-    fontSize: 11.5,
+    fontFamily: "Nunito_700Bold",
+    fontSize: 13,
     color: "#ffffff",
   },
-  presetLabel: {
+  coordInputsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  coordInputCol: {
+    flex: 1,
+  },
+  coordInputLabel: {
+    fontFamily: "Nunito_600SemiBold",
+    fontSize: 11,
+    color: "#52525b",
+    marginBottom: 4,
+  },
+  coordInputField: {
+    height: 42,
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    fontFamily: "Nunito_600SemiBold",
+    fontSize: 12.5,
+    color: "#18181b",
+  },
+  locationHelpText: {
     fontFamily: "Nunito_400Regular",
     fontSize: 11,
     color: "#71717a",
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  cityPresetsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 7,
-  },
-  cityPresetPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    borderWidth: 1,
-    borderColor: "rgba(0, 99, 99, 0.2)",
-  },
-  cityPresetPillActive: {
-    backgroundColor: colors.secondary,
-    borderColor: colors.secondary,
-  },
-  cityPresetText: {
-    fontFamily: "Nunito_400Regular",
-    fontSize: 11,
-    color: colors.secondary,
-  },
-  cityPresetTextActive: {
-    color: "#ffffff",
+    lineHeight: 15,
   },
 
   // ─── Step 2: Weekly Schedule ───

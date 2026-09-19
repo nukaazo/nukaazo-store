@@ -38,24 +38,13 @@ export const DEFAULT_CATEGORIES: Category[] = [
   },
 ];
 
-export const CITY_COORDINATES_PRESETS = [
-  { name: "Delhi NCR", lat: 28.6139, lon: 77.2090 },
-  { name: "Gurugram", lat: 28.4595, lon: 77.0266 },
-  { name: "Noida", lat: 28.5355, lon: 77.3910 },
-  { name: "Bengaluru", lat: 12.9716, lon: 77.5946 },
-  { name: "Mumbai", lat: 19.0760, lon: 72.8777 },
-  { name: "Hyderabad", lat: 17.3850, lon: 78.4867 },
-  { name: "Pune", lat: 18.5204, lon: 73.8567 },
-  { name: "Kolkata", lat: 22.5726, lon: 88.3639 },
-];
-
 export const INITIAL_SHOP_DATA: ShopData = {
   shopName: "",
   isOpen: true,
   isActive: true,
   coordinates: {
-    lat: 28.4595,
-    lon: 77.0266,
+    lat: 0,
+    lon: 0,
   },
   extendedAttributes: {
     verified: false,

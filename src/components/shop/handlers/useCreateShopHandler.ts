@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import { appAlert } from "@/lib/AppAlert";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { useProfile } from "@/context/ProfileContext";
 import { useShop } from "@/context/ShopContext";
 import { shopService } from "@/services/shop.service";
@@ -12,15 +13,12 @@ import {
   ShopProfilePayload,
 } from "../interface/shop.interface";
 import {
-  CITY_COORDINATES_PRESETS,
   DEFAULT_CATEGORIES,
   INITIAL_SHOP_DATA,
 } from "../data/initialShopData";
 import { ROUTES } from "@/helper/routes";
 
-type TimeModalTarget =
-  | { type: "openUntil" }
-  | { type: "day"; dayIndex: number; field: "openTime" | "closeTime" };
+type TimeModalTarget = { dayIndex: number; field: "openTime" | "closeTime" };
 
 export interface UseCreateShopHandlerOptions {
   onBack?: () => void;
@@ -53,7 +51,8 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
   const [isYearModalVisible, setIsYearModalVisible] = useState(false);
   const [isTimeModalVisible, setIsTimeModalVisible] = useState(false);
   const [timeModalTarget, setTimeModalTarget] = useState<TimeModalTarget>({
-    type: "openUntil",
+    dayIndex: 0,
+    field: "openTime",
   });
 
   // Location detection
@@ -242,36 +241,84 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
     appAlert.simple("Schedule Updated", "Monday's hours applied to all 7 days.", "success");
   };
 
-  // Location & GPS
-  const handleSelectPresetCity = (preset: { name: string; lat: number; lon: number }) => {
+  // Location & Precise GPS Coordinates
+  const updateCoordinate = (field: "lat" | "lon", value: string) => {
+    const num = parseFloat(value);
     setFormData((p) => ({
       ...p,
-      coordinates: { lat: preset.lat, lon: preset.lon },
+      coordinates: {
+        ...p.coordinates,
+        [field]: isNaN(num) ? 0 : num,
+      },
     }));
   };
 
-  const handleUseCurrentLocation = () => {
-    if (typeof navigator !== "undefined" && navigator.geolocation) {
-      setIsDetectingLocation(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setIsDetectingLocation(false);
-          const lat = parseFloat(pos.coords.latitude.toFixed(6));
-          const lon = parseFloat(pos.coords.longitude.toFixed(6));
-          setFormData((p) => ({
-            ...p,
-            coordinates: { lat, lon },
-          }));
-          appAlert.simple("Location Pinned", `GPS coordinates captured: ${lat}, ${lon}`, "success");
+  const handleUseCurrentLocation = async () => {
+    setIsDetectingLocation(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setIsDetectingLocation(false);
+        appAlert.simple(
+          "Location Permission Needed",
+          "Please allow location permission to detect your shop's exact GPS coordinates.",
+          "warning"
+        );
+        return;
+      }
+
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Highest,
+      });
+
+      const lat = parseFloat(loc.coords.latitude.toFixed(6));
+      const lon = parseFloat(loc.coords.longitude.toFixed(6));
+
+      // Attempt reverse geocoding to suggest address line1 / line2 if empty
+      let suggestedLine1 = "";
+      let suggestedLine2 = "";
+
+      try {
+        const reverse = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
+        if (reverse && reverse.length > 0) {
+          const place = reverse[0];
+          suggestedLine1 = [place.name, place.street].filter(Boolean).join(", ") || place.district || "";
+          suggestedLine2 = [place.subregion || place.city, place.region, place.postalCode].filter(Boolean).join(", ");
+        }
+      } catch {
+        // Reverse geocoding failure is non-blocking
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        coordinates: { lat, lon },
+        extendedAttributes: {
+          ...prev.extendedAttributes,
+          detail: {
+            ...prev.extendedAttributes.detail,
+            address: {
+              ...prev.extendedAttributes.detail.address,
+              line1: prev.extendedAttributes.detail.address.line1 || suggestedLine1,
+              line2: prev.extendedAttributes.detail.address.line2 || suggestedLine2,
+            },
+          },
         },
-        (err) => {
-          setIsDetectingLocation(false);
-          appAlert.simple("Could Not Detect Location", "Please select a preset city or enter coordinates manually.", "warning");
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
+      }));
+
+      appAlert.simple(
+        "Precise Location Fixed",
+        `GPS coordinates captured: ${lat}, ${lon}`,
+        "success"
       );
-    } else {
-      appAlert.simple("Not Available", "Location service is unavailable on this device. Pick from preset cities.", "info");
+    } catch (err: any) {
+      console.warn("Location detection error:", err);
+      appAlert.simple(
+        "Location Error",
+        "Could not detect GPS location. Please check your device location settings or enter coordinates manually.",
+        "error"
+      );
+    } finally {
+      setIsDetectingLocation(false);
     }
   };
 
@@ -388,12 +435,11 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
       return "Please enter Address Line 1 for your store.";
     }
     const coords = formData.coordinates;
-    if ((!coords?.lat && !coords?.lon) || (coords.lat === 0 && coords.lon === 0)) {
-      // Auto-assign default city coordinates (Delhi) if not selected
-      setFormData((prev) => ({
-        ...prev,
-        coordinates: { lat: 28.6139, lon: 77.209 },
-      }));
+    if (!coords || (coords.lat === 0 && coords.lon === 0)) {
+      return "Please capture or enter the precise GPS coordinates for your store.";
+    }
+    if (coords.lat < -90 || coords.lat > 90 || coords.lon < -180 || coords.lon > 180) {
+      return "Please enter valid GPS coordinates (Latitude: -90 to 90, Longitude: -180 to 180).";
     }
     return null;
   };
@@ -549,7 +595,6 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
     isTimeModalVisible,
     timeModalTarget,
     isDetectingLocation,
-    cityPresets: CITY_COORDINATES_PRESETS,
     setIsCategoryModalVisible,
     setIsYearModalVisible,
     setIsTimeModalVisible,
@@ -559,12 +604,12 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
     updateDetailField,
     updateAddress,
     updateContact,
+    updateCoordinate,
     updateUpi,
     handleVerifyUpi,
     toggleDayOpen,
     setDayTime,
     applyTimingsToAllDays,
-    handleSelectPresetCity,
     handleUseCurrentLocation,
     handlePickBannerImage,
     handlePickLogoImage,

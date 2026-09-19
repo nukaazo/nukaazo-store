@@ -427,89 +427,79 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
                   />
                 </View>
 
-                {/* Map Coordinates & GPS helper */}
+                {/* Precise GPS Coordinates Card */}
                 <View style={styles.locationCard}>
                   <View style={styles.locationCardHeader}>
                     <View style={styles.locationCoordRow}>
-                      <View style={styles.locationDot} />
-                      <Text style={styles.locationCoordText}>
-                        GPS: {formData.coordinates.lat.toFixed(4)}, {formData.coordinates.lon.toFixed(4)}
+                      <View
+                        style={
+                          formData.coordinates.lat !== 0 && formData.coordinates.lon !== 0
+                            ? styles.locationDot
+                            : styles.locationDotEmpty
+                        }
+                      />
+                      <Text
+                        style={
+                          formData.coordinates.lat !== 0 && formData.coordinates.lon !== 0
+                            ? styles.locationCoordText
+                            : styles.locationCoordTextEmpty
+                        }
+                      >
+                        {formData.coordinates.lat !== 0 && formData.coordinates.lon !== 0
+                          ? `GPS Fixed: ${formData.coordinates.lat.toFixed(6)}, ${formData.coordinates.lon.toFixed(6)}`
+                          : "Precise GPS Required *"}
                       </Text>
                     </View>
-
-                    <TouchableOpacity
-                      onPress={handler.handleUseCurrentLocation}
-                      style={styles.detectLocationBtn}
-                      disabled={handler.isDetectingLocation}
-                      activeOpacity={0.8}
-                    >
-                      {handler.isDetectingLocation ? (
-                        <ActivityIndicator size="small" color="#ffffff" />
-                      ) : (
-                        <Ionicons name="navigate-outline" size={13} color="#ffffff" />
-                      )}
-                      <Text style={styles.detectLocationText}>
-                        {handler.isDetectingLocation ? "Detecting..." : "Use Current GPS"}
-                      </Text>
-                    </TouchableOpacity>
                   </View>
 
-                  <Text style={styles.presetLabel}>Or select quick city preset:</Text>
-                  <View style={styles.cityPresetsRow}>
-                    {handler.cityPresets.map((preset) => {
-                      const isSelected =
-                        formData.coordinates.lat === preset.lat &&
-                        formData.coordinates.lon === preset.lon;
-                      return (
-                        <TouchableOpacity
-                          key={preset.name}
-                          onPress={() => handler.handleSelectPresetCity(preset)}
-                          style={[
-                            styles.cityPresetPill,
-                            isSelected && styles.cityPresetPillActive,
-                          ]}
-                          activeOpacity={0.7}
-                        >
-                          <Text
-                            style={[
-                              styles.cityPresetText,
-                              isSelected && styles.cityPresetTextActive,
-                            ]}
-                          >
-                            {preset.name}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* Closing Time */}
-                <View style={styles.fieldGroup}>
-                  <View style={styles.fieldLabelRow}>
-                    <Text style={styles.fieldLabel}>{createShopContent.labels.openUntil}</Text>
-                    <Text style={styles.fieldOptional}>General Closing</Text>
-                  </View>
                   <TouchableOpacity
-                    onPress={() => {
-                      handler.setTimeModalTarget({ type: "openUntil" });
-                      handler.setIsTimeModalVisible(true);
-                    }}
-                    style={styles.selectTrigger}
-                    activeOpacity={0.75}
+                    onPress={handler.handleUseCurrentLocation}
+                    style={styles.detectLocationBtn}
+                    disabled={handler.isDetectingLocation}
+                    activeOpacity={0.8}
                   >
-                    <Text
-                      style={
-                        formData.extendedAttributes.openUntil
-                          ? styles.selectTriggerText
-                          : styles.selectTriggerPlaceholder
-                      }
-                    >
-                      {formData.extendedAttributes.openUntil ||
-                        createShopContent.placeholders.openUntil}
+                    {handler.isDetectingLocation ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Ionicons name="location" size={16} color="#ffffff" />
+                    )}
+                    <Text style={styles.detectLocationText}>
+                      {handler.isDetectingLocation
+                        ? "Detecting Exact Location..."
+                        : "Detect Current GPS Location"}
                     </Text>
-                    <Ionicons name="time-outline" size={16} color="#71717a" />
                   </TouchableOpacity>
+
+                  {/* Manual / Verified Coordinate Inputs */}
+                  <View style={styles.coordInputsRow}>
+                    <View style={styles.coordInputCol}>
+                      <Text style={styles.coordInputLabel}>Latitude (e.g. 28.613939)</Text>
+                      <TextInput
+                        style={styles.coordInputField}
+                        value={formData.coordinates.lat ? String(formData.coordinates.lat) : ""}
+                        onChangeText={(val) => handler.updateCoordinate("lat", val)}
+                        placeholder="0.000000"
+                        placeholderTextColor="#a1a1aa"
+                        keyboardType="numeric"
+                      />
+                    </View>
+
+                    <View style={styles.coordInputCol}>
+                      <Text style={styles.coordInputLabel}>Longitude (e.g. 77.209021)</Text>
+                      <TextInput
+                        style={styles.coordInputField}
+                        value={formData.coordinates.lon ? String(formData.coordinates.lon) : ""}
+                        onChangeText={(val) => handler.updateCoordinate("lon", val)}
+                        placeholder="0.000000"
+                        placeholderTextColor="#a1a1aa"
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+
+                  <Text style={styles.locationHelpText}>
+                    Accurate GPS coordinates ensure customers and delivery partners can navigate directly to your shop.
+                  </Text>
                 </View>
 
                 {/* Weekly Operating Schedule */}
@@ -554,7 +544,6 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
                               <TouchableOpacity
                                 onPress={() => {
                                   handler.setTimeModalTarget({
-                                    type: "day",
                                     dayIndex: idx,
                                     field: "openTime",
                                   });
@@ -570,7 +559,6 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
                               <TouchableOpacity
                                 onPress={() => {
                                   handler.setTimeModalTarget({
-                                    type: "day",
                                     dayIndex: idx,
                                     field: "closeTime",
                                   });
@@ -801,31 +789,21 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
 
         <TimePickerModal
           visible={handler.isTimeModalVisible}
-          title={
-            handler.timeModalTarget.type === "openUntil"
-              ? "Select Closing Time"
-              : `Select ${
-                  handler.timeModalTarget.field === "openTime" ? "Opening" : "Closing"
-                } Time`
-          }
+          title={`Select ${
+            handler.timeModalTarget.field === "openTime" ? "Opening" : "Closing"
+          } Time`}
           initialTime={
-            handler.timeModalTarget.type === "openUntil"
-              ? formData.extendedAttributes.openUntil || "21:00"
-              : hours[handler.timeModalTarget.dayIndex]?.[
-                  handler.timeModalTarget.field
-                ] || "09:00"
+            hours[handler.timeModalTarget.dayIndex]?.[
+              handler.timeModalTarget.field
+            ] || "09:00"
           }
           onClose={() => handler.setIsTimeModalVisible(false)}
           onConfirm={(time) => {
-            if (handler.timeModalTarget.type === "openUntil") {
-              handler.updateExtAttribute("openUntil", time);
-            } else {
-              handler.setDayTime(
-                handler.timeModalTarget.dayIndex,
-                handler.timeModalTarget.field,
-                time
-              );
-            }
+            handler.setDayTime(
+              handler.timeModalTarget.dayIndex,
+              handler.timeModalTarget.field,
+              time
+            );
           }}
         />
     </KeyboardSafeView>
