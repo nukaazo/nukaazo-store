@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { colors } from '../../../theme/colors';
+import { colors } from '@/theme/colors';
 import { privacyContent } from '../content/privacy.content';
+import { usePrivacyHandler } from '../handlers/usePrivacyHandler';
 import { styles } from '../styles/Privacy.styles';
 
 export default function Privacy() {
-  const router = useRouter();
+  const { handleBack } = usePrivacyHandler();
 
   return (
     <View style={styles.container}>
@@ -19,7 +19,7 @@ export default function Privacy() {
               styles.backButton,
               { backgroundColor: pressed ? colors.borderDivider : 'transparent' },
             ]}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <Ionicons name="chevron-back" size={20} color={colors.textStrong} />
           </Pressable>

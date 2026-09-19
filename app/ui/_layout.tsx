@@ -37,8 +37,8 @@ export default function Layout() {
           >
             <Stack.Screen name="dashboard/index" options={{ headerShown: false }} />
             <Stack.Screen name="create-shop/index" options={{ headerShown: false }} />
-            <Stack.Screen name="terms" options={{ headerShown: false }} />
-            <Stack.Screen name="privacy" options={{ headerShown: false }} />
+            <Stack.Screen name="terms/index" options={{ headerShown: false }} />
+            <Stack.Screen name="privacy/index" options={{ headerShown: false }} />
           </Stack>
 
           {isOverlayLoading && (

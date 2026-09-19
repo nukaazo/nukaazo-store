@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { colors } from '../../../theme/colors';
+import { colors } from '@/theme/colors';
 import { termsContent } from '../content/terms.content';
+import { useTermsHandler } from '../handlers/useTermsHandler';
 import { styles } from '../styles/Terms.styles';
 
 export default function Terms() {
-  const router = useRouter();
+  const { handleBack } = useTermsHandler();
 
   return (
     <View style={styles.container}>
@@ -19,7 +19,7 @@ export default function Terms() {
               styles.backButton,
               { backgroundColor: pressed ? '#f4f4f5' : 'transparent' },
             ]}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <Ionicons name="chevron-back" size={20} color="#18181b" />
           </Pressable>
