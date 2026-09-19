@@ -7,10 +7,9 @@ import {
   ScrollView,
   Switch,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardSafeView } from "@/components/common/KeyboardSafeView";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme/colors";
@@ -40,15 +39,12 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
     );
   }
 
+  const insets = useSafeAreaInsets();
   const { formData } = handler;
   const hours = formData.extendedAttributes.detail.hours;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom", "left", "right"]}>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+    <KeyboardSafeView style={styles.keyboardAvoid}>
         {/* ─── Top Header Bar (Clean, Minimal, No Top Save Button) ─── */}
         <View style={styles.headerBar}>
           <TouchableOpacity
@@ -196,9 +192,11 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
 
         <View style={styles.mainWrapper}>
           <ScrollView
+            style={styles.scrollView}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
           >
             {/* ══════════════════════════════════════════════════
                 STEP 1: STORE BASICS & IDENTITY
@@ -741,7 +739,7 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
           </ScrollView>
 
           {/* ─── Fixed Bottom Navigation Bar (No Clutter, Clean Action) ─── */}
-          <View style={styles.bottomBar}>
+          <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 14) }]}>
             {handler.currentStep > 1 && (
               <TouchableOpacity
                 style={styles.backStepBtn}
@@ -830,8 +828,7 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
             }
           }}
         />
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    </KeyboardSafeView>
   );
 };
 

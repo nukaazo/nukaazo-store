@@ -2,16 +2,20 @@ import { StyleSheet, Platform } from "react-native";
 import { colors } from "@/theme/colors";
 
 export const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: "#ffffff",
   },
   keyboardAvoid: {
     flex: 1,
+    backgroundColor: "#ffffff",
   },
   mainWrapper: {
     flex: 1,
     backgroundColor: "#ffffff",
+  },
+  scrollView: {
+    flex: 1,
   },
 
   // ─── Top Header Bar (Compact) ───
@@ -128,8 +132,8 @@ export const styles = StyleSheet.create({
   // ─── Scroll Container ───
   scrollContainer: {
     paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 110,
+    paddingTop: 12,
+    paddingBottom: 28,
   },
 
   // ─── Step Heading Banner ───
@@ -713,16 +717,11 @@ export const styles = StyleSheet.create({
 
   // ─── Fixed Bottom Navigation Bar ───
   bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: "#ffffff",
     borderTopWidth: 1,
     borderTopColor: "#f4f4f6",
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: Platform.OS === "ios" ? 28 : 14,
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
