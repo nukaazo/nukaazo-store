@@ -1,4 +1,7 @@
-import React from 'react';
+import { colors } from '@/theme/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Animated,
   Pressable,
@@ -7,16 +10,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/theme/colors';
-import { useNrViewHandler } from '../handlers/useNrViewHandler';
-import ContactSupportModal from './ContactSupportModal';
 import { emptyStoreProfileContent } from '../content/emptyStoreProfile.content';
+import { useNrViewHandler } from '../handlers/useNrViewHandler';
 import { styles } from '../styles/nrview.styles';
+import ContactSupportModal from './ContactSupportModal';
 const SHOPKEEPER_3D_IMAGE = require('../../../../assets/images/indian_shopkeeper_3d.png');
 
 export default function NRViewHome() {
