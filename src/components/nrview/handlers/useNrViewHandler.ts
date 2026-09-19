@@ -65,12 +65,7 @@ export function useNrViewHandler() {
   }, [stagePulseAnim, annotationAnim]);
 
   const handleCreateStore = () => {
-    setIsCreatingShop(true);
-    try {
-      router.push(ROUTES.CREATE_SHOP);
-    } catch (e) {
-      console.log('Navigation error:', e);
-    }
+    router.push(ROUTES.CREATE_SHOP);
   };
 
   const handleContactSupport = () => {

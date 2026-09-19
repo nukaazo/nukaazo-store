@@ -36,7 +36,13 @@ function RootLayoutContent({ isTokenLoaded }: { isTokenLoaded: boolean }) {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        animationDuration: 250,
+      }}
+    >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="login/index" options={{ headerShown: false }} />
       <Stack.Screen name="ui" options={{ headerShown: false }} />

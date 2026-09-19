@@ -82,6 +82,9 @@ export const INITIAL_SHOP_DATA: ShopData = {
         upiId: "",
       },
     },
+    sortOptions: [{ id: "recommended", label: "Recommended" }],
+    tagOptions: [{ id: "Best Seller", label: "Best Seller" }],
   },
   categories: [],
 };
+

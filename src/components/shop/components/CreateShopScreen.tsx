@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ScrollView,
   Switch,
   ActivityIndicator,
+  Animated,
+  Easing,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardSafeView } from "@/components/common/KeyboardSafeView";
@@ -28,6 +30,29 @@ export interface CreateShopScreenProps {
 
 export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
   const handler = useCreateShopHandler(props);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    fadeAnim.setValue(0);
+    slideAnim.setValue(10);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 200,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [handler.currentStep]);
 
   if (handler.isSuccess) {
     return (
@@ -192,12 +217,19 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
 
         <View style={styles.mainWrapper}>
           <ScrollView
+            ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >
+            <Animated.View
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
             {/* ══════════════════════════════════════════════════
                 STEP 1: STORE BASICS & IDENTITY
             ══════════════════════════════════════════════════ */}
@@ -724,6 +756,7 @@ export const CreateShopScreen: React.FC<CreateShopScreenProps> = (props) => {
                 </View>
               </View>
             )}
+            </Animated.View>
           </ScrollView>
 
           {/* ─── Fixed Bottom Navigation Bar (No Clutter, Clean Action) ─── */}

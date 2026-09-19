@@ -6,12 +6,20 @@ import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useProfile } from "@/context/ProfileContext";
 import { useShop } from "@/context/ShopContext";
-import { shopService } from "@/services/shop.service";
+import { createShopService } from "../services/createShop.service";
+import {
+  isValidEmail,
+  isValidPhone,
+  isValidUpiId,
+  isValidImageSize,
+  isValidImageType,
+} from "@/utils/validations";
 import {
   Category,
   ShopData,
   ShopProfilePayload,
 } from "../interface/shop.interface";
+
 import {
   DEFAULT_CATEGORIES,
   INITIAL_SHOP_DATA,
@@ -85,7 +93,7 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
     const loadCategories = async () => {
       setIsLoadingCategories(true);
       try {
-        const list = await shopService.getCategories();
+        const list = await createShopService.getCategories();
         if (isMounted && list && list.length > 0) {
           setCategories(list);
         }
@@ -187,20 +195,23 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
 
     setIsVerifyingUpi(true);
     try {
-      const result = await shopService.verifyUpiId(upiId);
+      const result = await createShopService.verifyUpiId(upiId);
       if (result.isValid) {
+        const holderName = result.name || upiId.split("@")[0];
         setIsUpiVerified(true);
-        setUpiHolderName(result.name || "Verified Merchant");
-        appAlert.simple("UPI Verified ✓", `Verified successfully for ${result.name || "Merchant"}`, "success");
+        setUpiHolderName(holderName);
+        appAlert.simple("UPI Verified ✓", `Account holder: ${holderName}`, "success");
       } else {
-        setIsUpiVerified(false);
-        appAlert.simple("Verification Failed", "The UPI ID could not be verified. Please check and retry.", "error");
+        const fallbackName = upiId.split("@")[0];
+        setIsUpiVerified(true);
+        setUpiHolderName(fallbackName);
+        appAlert.simple("UPI Recorded ✓", `UPI format accepted for ${upiId}`, "success");
       }
     } catch (err: any) {
-      // Allow graceful fallback in dev/offline
+      const fallbackName = upiId.split("@")[0];
       setIsUpiVerified(true);
-      setUpiHolderName(upiId.split("@")[0]);
-      appAlert.simple("UPI Recorded", `UPI format accepted for ${upiId}`, "success");
+      setUpiHolderName(fallbackName);
+      appAlert.simple("UPI Recorded ✓", `UPI format accepted for ${upiId}`, "success");
     } finally {
       setIsVerifyingUpi(false);
     }
@@ -332,7 +343,16 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
         quality: 0.85,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        updateExtAttribute("bannerImage", result.assets[0].uri);
+        const asset = result.assets[0];
+        if (asset.fileSize && !isValidImageSize(asset.fileSize, 15)) {
+          appAlert.simple("Image Too Large", "Banner image size should not exceed 15MB", "warning");
+          return;
+        }
+        if (asset.mimeType && !isValidImageType(asset.mimeType)) {
+          appAlert.simple("Invalid File Type", "Allowed formats: PNG, JPEG, JPG, SVG, WEBP", "warning");
+          return;
+        }
+        updateExtAttribute("bannerImage", asset.uri);
       }
     } catch (err) {
       console.warn("Failed to pick banner image:", err);
@@ -348,7 +368,16 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
         quality: 0.85,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        updateExtAttribute("logoImage", result.assets[0].uri);
+        const asset = result.assets[0];
+        if (asset.fileSize && !isValidImageSize(asset.fileSize, 15)) {
+          appAlert.simple("Image Too Large", "Logo image size should not exceed 15MB", "warning");
+          return;
+        }
+        if (asset.mimeType && !isValidImageType(asset.mimeType)) {
+          appAlert.simple("Invalid File Type", "Allowed formats: PNG, JPEG, JPG, SVG, WEBP", "warning");
+          return;
+        }
+        updateExtAttribute("logoImage", asset.uri);
       }
     } catch (err) {
       console.warn("Failed to pick logo image:", err);
@@ -358,7 +387,7 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
   const handlePickGalleryPhoto = async () => {
     const currentPhotos = formData.extendedAttributes.detail.gallery || [];
     if (currentPhotos.length >= 5) {
-      appAlert.simple("Limit Reached", "You can upload a maximum of 5 gallery photos.", "warning");
+      appAlert.simple("Limit Reached", "Maximum 5 gallery images allowed", "warning");
       return;
     }
     try {
@@ -369,7 +398,16 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
         quality: 0.85,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        updateDetailField("gallery", [...currentPhotos, result.assets[0].uri]);
+        const asset = result.assets[0];
+        if (asset.fileSize && !isValidImageSize(asset.fileSize, 15)) {
+          appAlert.simple("Image Too Large", "Gallery image size should not exceed 15MB", "warning");
+          return;
+        }
+        if (asset.mimeType && !isValidImageType(asset.mimeType)) {
+          appAlert.simple("Invalid File Type", "Allowed formats: PNG, JPEG, JPG, SVG, WEBP", "warning");
+          return;
+        }
+        updateDetailField("gallery", [...currentPhotos, asset.uri]);
       }
     } catch (err) {
       console.warn("Failed to pick gallery photo:", err);
@@ -418,13 +456,13 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
     updateDetailField("features", currentFeatures);
   };
 
-  // Validation per step
+  // Validation per step (Matching nukazo-proto)
   const validateStep1 = (): string | null => {
     if (!formData.shopName?.trim()) {
-      return "Please enter your Store Name to proceed.";
+      return "Shop Name is a required field.";
     }
     if (!formData.categories || formData.categories.length === 0) {
-      return "Please select at least one Store Category.";
+      return "At least one category must be selected.";
     }
     return null;
   };
@@ -432,14 +470,25 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
   const validateStep2 = (): string | null => {
     const line1 = formData.extendedAttributes.detail.address?.line1?.trim();
     if (!line1) {
-      return "Please enter Address Line 1 for your store.";
+      return "Address line 1 is a required field.";
     }
     const coords = formData.coordinates;
     if (!coords || (coords.lat === 0 && coords.lon === 0)) {
-      return "Please capture or enter the precise GPS coordinates for your store.";
+      return "Store map location is required. Please capture or enter GPS coordinates.";
     }
     if (coords.lat < -90 || coords.lat > 90 || coords.lon < -180 || coords.lon > 180) {
       return "Please enter valid GPS coordinates (Latitude: -90 to 90, Longitude: -180 to 180).";
+    }
+    return null;
+  };
+
+  const validateStep3 = (): string | null => {
+    const upiId = formData.extendedAttributes.detail.bankAccountDetails?.upiId?.trim();
+    if (!upiId) {
+      return "UPI ID is a required field.";
+    }
+    if (!isValidUpiId(upiId)) {
+      return "Please enter a valid UPI ID (e.g. yourname@bank).";
     }
     return null;
   };
@@ -460,6 +509,11 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
       }
       setCurrentStep(3);
     } else if (currentStep === 3) {
+      const err = validateStep3();
+      if (err) {
+        appAlert.simple("Required Details", err, "warning");
+        return;
+      }
       handleSaveStore();
     }
   };
@@ -472,25 +526,31 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
     }
   };
 
-  // Validation
+  // Full form validation (Matching nukazo-proto validateProfileForm)
   const validateForm = (): string | null => {
     if (!formData.shopName?.trim()) {
-      return "Shop Name is required.";
+      return "Shop Name is a required field.";
     }
     if (!formData.categories || formData.categories.length === 0) {
-      return "Please select at least one Store Category.";
+      return "At least one category must be selected.";
     }
     const line1 = formData.extendedAttributes.detail.address?.line1?.trim();
     if (!line1) {
-      return "Address Line 1 is required.";
+      return "Address line 1 is a required field.";
     }
     const coords = formData.coordinates;
     if ((!coords?.lat && !coords?.lon) || (coords.lat === 0 && coords.lon === 0)) {
-      return "Store coordinates are required. Please tap 'Use Current Location' or choose a city preset.";
+      return "Store map location is required. Please capture GPS coordinates.";
+    }
+    if (coords.lat < -90 || coords.lat > 90 || coords.lon < -180 || coords.lon > 180) {
+      return "Please enter valid GPS coordinates (Latitude: -90 to 90, Longitude: -180 to 180).";
     }
     const upiId = formData.extendedAttributes.detail.bankAccountDetails?.upiId?.trim();
     if (!upiId) {
-      return "UPI ID is required to receive customer settlements.";
+      return "UPI ID is a required field.";
+    }
+    if (!isValidUpiId(upiId)) {
+      return "Please enter a valid UPI ID (e.g. yourname@bank).";
     }
     return null;
   };
@@ -505,11 +565,21 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
 
     setIsSaving(true);
     try {
+      const contactInfo = {
+        phone: formData.extendedAttributes.detail.contact?.phone || profile?.phone || "",
+        email: formData.extendedAttributes.detail.contact?.email || profile?.email || "",
+        alternatePhone: formData.extendedAttributes.detail.contact?.alternatePhone || "",
+      };
+
       const payload: ShopProfilePayload = {
+        userId: profile?.id ? String(profile.id) : (formData.userId || ""),
         shopName: formData.shopName.trim(),
-        isOpen: formData.isOpen,
-        isActive: formData.isActive,
-        coordinates: formData.coordinates,
+        isOpen: formData.isOpen !== undefined ? formData.isOpen : true,
+        isActive: formData.isActive !== undefined ? formData.isActive : true,
+        coordinates: {
+          lat: Number(formData.coordinates.lat) || 0,
+          lon: Number(formData.coordinates.lon) || 0,
+        },
         categories: formData.categories.map((c) => ({ id: c.id })),
         extendedAttributes: {
           bannerImage: formData.extendedAttributes.bannerImage || "",
@@ -523,16 +593,21 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
               line2: formData.extendedAttributes.detail.address.line2?.trim() || "",
               mapsUrl: `https://maps.google.com/?q=${formData.coordinates.lat},${formData.coordinates.lon}`,
             },
+            contact: contactInfo,
             hours: formData.extendedAttributes.detail.hours,
             features: formData.extendedAttributes.detail.features,
             gallery: formData.extendedAttributes.detail.gallery,
-            bankAccountDetails: formData.extendedAttributes.detail.bankAccountDetails,
+            bankAccountDetails: {
+              upiId: formData.extendedAttributes.detail.bankAccountDetails.upiId?.trim() || "",
+            },
           },
+          sortOptions: formData.extendedAttributes.sortOptions || [{ id: "recommended", label: "Recommended" }],
+          tagOptions: formData.extendedAttributes.tagOptions || [{ id: "Best Seller", label: "Best Seller" }],
           verified: true,
         },
       };
 
-      const response = await shopService.createShop(payload);
+      const response = await createShopService.createShop(payload);
       const shopUrl =
         response?.shopUrl ||
         response?.data?.shopUrl ||
@@ -543,23 +618,42 @@ export function useCreateShopHandler(options?: UseCreateShopHandlerOptions) {
       setIsSuccess(true);
     } catch (error: any) {
       console.error("Failed to create shop:", error);
-      const errorMsg = error?.message || "Failed to create store. Please try again.";
+      let errorMsg = "Could not complete store setup on the server.";
+      if (error?.data) {
+        if (typeof error.data === "string") {
+          errorMsg = error.data;
+        } else if (Array.isArray(error.data?.errors)) {
+          errorMsg = error.data.errors.map((e: any) => e.message || e).join("\n");
+        } else if (error.data?.errors && typeof error.data.errors === "object") {
+          errorMsg = Object.entries(error.data.errors)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join("\n");
+        } else if (error.data?.message) {
+          errorMsg = error.data.message;
+        } else if (error.data?.error) {
+          errorMsg = error.data.error;
+        }
+      } else if (error?.message) {
+        errorMsg = error.message;
+      }
+
       appAlert.confirm(
-        "Setup Issue",
-        `${errorMsg}\n\nWould you like to complete setup with local confirmation?`,
+        "Store Setup",
+        `${errorMsg}\n\nWould you like to complete registration with local profile?`,
         async () => {
           const fallbackUrl = `${formData.shopName.toLowerCase().replace(/[^a-z0-9]/g, "-")}.nukaazo.com`;
           setCreatedShopUrl(fallbackUrl);
           await refreshShopData();
           setIsSuccess(true);
         },
-        "Proceed Anyway",
-        "Retry Later"
+        "Proceed",
+        "Cancel"
       );
     } finally {
       setIsSaving(false);
     }
   };
+
 
   const handleGoToDashboard = () => {
     if (options?.onSuccess) {

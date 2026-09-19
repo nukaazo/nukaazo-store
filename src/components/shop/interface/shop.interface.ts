@@ -92,6 +92,7 @@ export interface ShopProfilePayload {
         line2: string;
         mapsUrl?: string;
       };
+      contact?: ShopContact;
       hours: BusinessHour[];
       features: Feature[];
       gallery: string[];

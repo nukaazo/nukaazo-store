@@ -27,6 +27,8 @@ export default function Layout() {
         <Stack
           screenOptions={{
             headerShown: false,
+            animation: 'slide_from_right',
+            animationDuration: 250,
             contentStyle: { backgroundColor: colors.background },
           }}
         >

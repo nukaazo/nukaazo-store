@@ -80,14 +80,6 @@ export const ShopSuccessView: React.FC<ShopSuccessViewProps> = ({
           {createShopContent.success.subtitle}
         </Text>
 
-        {/* Shop URL badge if available */}
-        {shopUrl ? (
-          <View style={successStyles.urlBadge}>
-            <Ionicons name="link-outline" size={16} color={colors.primary} />
-            <Text style={successStyles.urlText}>{shopUrl}</Text>
-          </View>
-        ) : null}
-
         {/* Buttons */}
         <View style={successStyles.buttonGroup}>
           <TouchableOpacity
@@ -169,25 +161,8 @@ const successStyles = StyleSheet.create({
     color: colors.textMutedDark,
     textAlign: "center",
     lineHeight: 21,
-    marginBottom: 24,
-    paddingHorizontal: 12,
-  },
-  urlBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: colors.orangeTint,
-    borderWidth: 1,
-    borderColor: "rgba(232, 92, 28, 0.2)",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
     marginBottom: 28,
-  },
-  urlText: {
-    fontFamily: "Nunito_700Bold",
-    fontSize: 13,
-    color: colors.primary,
+    paddingHorizontal: 12,
   },
   buttonGroup: {
     width: "100%",
