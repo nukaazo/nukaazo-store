@@ -109,7 +109,7 @@ export const createShopContent = {
     }
   },
   labels: {
-    storeName: "Store Name *",
+    storeName: "Store Name",
     establishedYear: "Established Year",
     openUntil: "Usually Open Until",
     aboutStore: "About the Store",
